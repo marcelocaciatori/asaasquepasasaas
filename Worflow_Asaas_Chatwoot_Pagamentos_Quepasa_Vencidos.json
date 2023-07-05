@@ -1,0 +1,169 @@
+{
+  "name": "Worflow Asaas Chatwoot Pagamentos Quepasa Vencidos",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13iPzU9CrjUnri_dXLtn4W2R4dl5gTWScwzbFDL9QhFE",
+          "mode": "list",
+          "cachedResultName": "Expirados",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13iPzU9CrjUnri_dXLtn4W2R4dl5gTWScwzbFDL9QhFE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Página1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13iPzU9CrjUnri_dXLtn4W2R4dl5gTWScwzbFDL9QhFE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "68a31c42-be1f-4d12-9a86-332e9b2c84c5",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        220,
+        220
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4",
+          "name": "Google SocialWhats"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 23
+            }
+          ]
+        }
+      },
+      "id": "6e80834a-4777-48d8-9c83-f70508e30db6",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=Update accounts set status = 1 where name = '{{ $json.Nome }}' ",
+        "options": {}
+      },
+      "id": "70686d63-8110-4315-b59e-586d0d2ae886",
+      "name": "Marca como Vencido",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.1,
+      "position": [
+        840,
+        200
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json['Data Expiração'] }}",
+              "value2": "={{ $('Google Sheets').item.json['Próximo Vencimento'] }}"
+            }
+          ]
+        }
+      },
+      "id": "17097c2d-c755-4e0b-9110-f28d3a13f412",
+      "name": "IF",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        620,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "value": "={{ $('Schedule Trigger').item.json.timestamp }}",
+        "dataPropertyName": "Data Expiração",
+        "toFormat": "YYYY-MM-DD",
+        "options": {}
+      },
+      "id": "5ba52e7f-79c1-4d7f-b3c0-d39d4bfa61ec",
+      "name": "Enviando Formato Data Vencimento",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 1,
+      "position": [
+        420,
+        220
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Enviando Formato Data Vencimento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "Marca como Vencido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviando Formato Data Vencimento": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "versionId": "30c72bb8-668c-4b88-b914-4b77c778bffc",
+  "id": "13",
+  "meta": {
+    "instanceId": "c1d85c6e4bc8af8e81ca39a4929ddc8441c88a883b07fbb3363376f1b123e457"
+  },
+  "tags": []
+}
